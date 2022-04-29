@@ -1,0 +1,371 @@
+* IIFE trong Javascript là gì? Hiểu IIFE cùng F8 nha!
+	> IIFE viết tắt của Immediately invoked function expression. Là một biểu thức tạo ra một hàm được thực thi ngay lập tức. Ứng dụng của IIFE là tạo ra một phạm vi hàm mới với cách viết ngắn gọn.
+		> Ref: https://www.youtube.com/watch?v=N-3GU1F1UBY&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=3
+	
+	- Function Expression:
+		const callNow = function() {
+			console.log('Now')
+		}
+		callNow() //phải gọi hàm ở đây nên chưa phải là gọi ngay lập tức
+	- IIFE:
+		- Ví dụ 1:
+			;(function() {
+				console.log('Now')
+			})() //hàm được gọi ngay lập tức, print: Now
+		- Ví dụ 2:
+			;(function(message) {
+				console.log('message: ', message)
+			})('Hello') //hàm được gọi ngay lập tức, print: message: Hello
+		> Chú ý nên dùng dầu ; trước IIFE để tránh nếu dòng code nào đó phía trên không có dấu kết thúc ; thì sẽ sinh ra lỗi
+	- IIFE là private nên không thể truy cập được từ bên ngoài
+		;(function myFunc() {
+			console.log('Now')
+		})()
+		myFunc() //print: myFunc iss not defined, lỗi vì hàm IIFE là private
+		
+		- Nhưng IIFE có thể gọi trong scope của nó, ví dụ đệ quy gọi lại chính nó:
+			let i=0
+			;(function myFunc() {
+				i++
+				console.log(i)
+				
+				if(i<10)
+					myFunc()
+			})()
+		
+		- IIFE là hàm Private, ví dụ s/d IIFE:
+			const app = (function() {
+			  //private
+			  const cars = []
+
+			  return {
+				get(index){
+				  return cars[index]
+				},
+				add(car) {
+				  cars.push(car)
+				},
+				edit(index, car) {
+				  cars[index] = car
+				},
+				delete(index) {
+				  cars.splice(index, 1)
+				}
+			  }
+			})()
+
+			app.add('A1')
+			app.add('A2')
+
+			console.log(app.cars) //undefined > private
+
+			console.log(app.get(0)) //A1
+
+			app.delete(0)
+			console.log(app.get(0)) //A2
+
+			app.edit(0, 'A3')
+			console.log(app.get(0)) //A3
+					
+				
+---------------------------------------------------------------------------------------------------------------------------				
+* Closure trong Javascript có phải là cái gì "kinh khủng"?
+	> Ref: https://www.youtube.com/watch?v=xtQtGKL0NCI&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=4	
+	- Ví dụ 1:
+		function createCounter() {
+			let counter = 0
+			function increase() {
+				return ++counter
+			}
+			return increase
+		}
+		const counter1 = createCounter()
+		console.logger(counter1()) //print: 1
+		console.logger(counter1()) //print: 2
+		console.logger(counter1()) //print: 3
+		
+		const counter2 = createCounter()
+		console.logger(counter2()) //print: 1
+		console.logger(counter2()) //print: 2
+		console.logger(counter2()) //print: 3
+		
+	- Ví dụ 2:
+		function createLogger(namespace) {
+			function logger(message) {
+				console.log(`[${namespace}] ${message}`)
+			}
+			return logger
+		}
+		//----------App---------
+		//Register.js
+		const infoLogger = createLogger('Debug')
+		infoLogger('Bắt đầu gửi mail') //print: [Debug] Bắt đầu gửi mail
+		infoLogger('Gửi mail lỗi, thử lại...') //print: [Debug] Gửi mail lỗi, thử lại...
+		
+		//ForgotPassword.js
+		const infoLogger = createLogger('Error')
+		infoLogger('Email không tồn tại trong db') //print: [Error] Email không tồn tại trong db
+		
+	- Ví dụ 3:
+		function createStorage(key) {
+		  const store = JSON.parse(localStorage.getItem(key)) ?? {}
+		  
+		  const save = () => {
+			localStorage.setItem(key, JSON.stringify(store))
+		  }
+		  
+		  const storage = {
+			get(key) {
+			  return store[key]
+			},
+			set(key, value) {
+			  store[key] = value
+			  save()
+			},
+			remove(key) {
+			  delete store[key]
+			  save()
+			}
+		  }
+		  
+		  return storage
+		}
+
+		//Profile.js
+		const profileSetting1 = createStorage('profile_setting_1')
+		profileSetting1.set('fullName','Thomas')
+		profileSetting1.set('age','20')
+		profileSetting1.set('address','Ha Noi')
+
+		const profileSetting2 = createStorage('profile_setting_2')
+		profileSetting2.set('fullName','Thang')
+		profileSetting2.set('age','40')
+		profileSetting2.set('address','Nam Dinh')
+
+		console.log(profileSetting1.get('fullName'))
+		console.log(profileSetting2.get('fullName'))
+
+		profileSetting1.remove('fullName')
+		console.log(profileSetting1.get('fullName'))
+		
+	- Ví dụ 4:
+		function createApp() {
+		  const cars = []
+		  return {
+			add(car) {
+			  cars.push(car)
+			},
+			show() {
+			  console.log(cars)
+			}
+		  }
+		}
+
+		const app = createApp()
+		app.add('BMW')
+		app.add('Honda')
+		app.add('Mazda')
+		app.show() //print: (3) ['BMW', 'Honda', 'Mazda']
+		
+--------------------------------------------------------------------------------------------------------------------------
+* Scope trong Javascript? Hiểu thật rõ về phạm vi nào!
+	> Ref: https://www.youtube.com/watch?v=5N8vz_VmszE&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=3
+		
+--------------------------------------------------------------------------------------------------------------------------
+* Hoisting trong Javascript? Let, const có được hoisted hay không?
+	> Ref: https://www.youtube.com/watch?v=3MLhU1DrUxM&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=5
+		
+--------------------------------------------------------------------------------------------------------------------------
+* "use strict" hay strict mode trong Javascript?
+	> Ref: https://www.youtube.com/watch?v=w1W-j4cSPF0&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=6
+		
+--------------------------------------------------------------------------------------------------------------------------
+* Primitive Types & Reference Types trong Javascript
+	> Ref: https://www.youtube.com/watch?v=n4tS1Q5-EzY&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=7
+		
+--------------------------------------------------------------------------------------------------------------------------	
+* Từ khóa "this" trong Javascript? Dễ hiểu cùng F8 nào!
+	> Ref: https://www.youtube.com/watch?v=ii1Ra_zLDIo&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=8
+		
+--------------------------------------------------------------------------------------------------------------------------	
+* Fn.bind() method P1? Học rồi thì xem lại cho chắc nha!
+	> Ref: https://www.youtube.com/watch?v=F5z6YoR8of0&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=9
+		
+--------------------------------------------------------------------------------------------------------------------------	
+* Fn.bind() method P2? Thêm vài ví dụ "khó" hơn nào!
+	> Ref: https://www.youtube.com/watch?v=6j9b2_E34JM&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=10
+	
+	- 'index.html'
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>Bind Method</title>
+			</head>
+			<body>
+			  <input type="text" placeholder="Enter car name..." id="input" />
+			  <button id="submit">Add</button>
+			  <ul id="root"></ul>
+			  
+			  <script src="bind_method.js"></script>
+			</body>
+		</html>
+
+		
+	- 'bind_method.js'
+		const $ = document.querySelector.bind(document)
+		const $$ = document.querySelectorAll.bind(document)
+
+		const app = (() => {
+			const cars = ['BWM']
+			
+			const root = $('#root')
+			const input = $('#input')
+			const submit = $('#submit')
+			
+			return {
+				add(car) {
+					cars.push(car)
+				},
+				delete(index) {
+					cars.splice(index, 1) //index> vị trí của mảng, 1> xóa 1 phần tử
+				},
+				render() {
+					const html = cars.map((car, index) => `
+						<li>
+							${car} (${index})
+							<span class="delete" data-index="${index}">&times</span>
+						</li>
+					`)
+					.join('')
+
+					root.innerHTML = html 
+				},
+				handleDelete(e) {
+					const deleteBtn = e.target.closest('.delete') //kiểm tra chính element đó hoặc cha của nó có chứa class đó hay không
+					console.log(deleteBtn)
+					if(deleteBtn) {
+						const index = deleteBtn.dataset.index
+						this.delete(index)
+						this.render()
+					}
+				},
+				init() {
+					//Handle DOM events
+					submit.onclick = () => {
+						console.log(1)
+
+						const car = input.value
+						this.add(car)
+						this.render()
+
+						input.value = null
+						input.focus()
+					}
+					
+					root.onclick = this.handleDelete.bind(this)
+
+					this.render()
+				}
+			}
+		})();
+
+		app.init()	
+		
+--------------------------------------------------------------------------------------------------------------------------	
+* Fn.call() method trong Javascript?
+	> Ref: https://www.youtube.com/watch?v=QxLTSdTJDXY&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=11
+	
+	- Ví dụ 1:
+		function Animal(name, weight) {
+			this.name = name
+			this.weight = weight
+		}
+		
+		function Chicken(name, weight, legs) {
+			Animal.call(this, name, weight) //kế thừa
+			this.legs = legs
+		}
+		
+		const thangtd = new Chicken('ThangID', 70, 2)
+		console.log(thangtd) //print: Chicken{name:'ThangID', weight:70, legs:2}
+		
+	- Ví dụ 2:
+		function logger() {
+			//biến arguments thành mảng dùng slice: slice là cắt mảng || copy mảng
+			const arr = Array.prototype.slice.call(arguments)
+			
+			arr.forEach(item => console.log(item))
+		}
+		
+		logger(1,2,3,4,5) //print: 1 2 3 4 5
+		
+	- Ví dụ 3:
+		function logger() {
+			//biến arguments thành mảng dùng Array.from
+			const arr = Array.from(arguments)
+			
+			console.log(arr) //print: [1,2,3,4,5]
+		}
+		
+		logger(1,2,3,4,5) //print: 1 2 3 4 5
+		
+	- Ví dụ 4:
+		function logger() {
+			//biến arguments thành mảng dùng ES6
+			const arr = [...arguments]
+			
+			console.log(arr) //print: [1,2,3,4,5]
+		}
+		
+		logger(1,2,3,4,5) //print: 1 2 3 4 5
+		
+		
+	- Ví dụ 5:
+		function logger() {
+			//arguments không phải là 1 mảng nên dùng call để biến nó thành 1 mảng rồi loop
+			Array.prototype.forEach.call(arguments, item => {
+				console.log(item)
+			})
+			
+			const cars = ['BMW','Honda']
+			
+			cars.forEach(car => {
+				console.log(car)
+			})
+		}
+		
+		logger(1,2,3,4,5) //print: 1 2 3 4 5
+		
+--------------------------------------------------------------------------------------------------------------------------
+* Fn.apply() method trong Javascript?
+	> Ref: https://www.youtube.com/watch?v=a4FjX4Z-9Rs&list=PL_-VfJajZj0U1MSx1IMu13oLJq2nM97ac&index=12
+		- Phuương thức này cho phép gọi một hàm với một this (bind) và truyền đối số cho hàm gốc dưới dạng mảng
+	
+	- Ví dụ 1:
+		const teacher = {
+			firstName: "Minh",
+			lastName: "Thu",
+		}
+		
+		function greet(greeting, message) {
+			return `${greeting} ${this.firstName} ${this.lastName}. ${message}`
+		}
+		
+		let result = greet.apply(teacher, ['Em chao co','Ten em la Thang'])
+		console.log(result) //print: Em chao co Minh Thu. Ten em la Thang
+		
+		> Giải thích: 
+			- Hàm apply truyền đối số đầu là 'teacher' > nghìa là bind object này để nhận nó là this
+			- Đối số thứ 2 truyền vào là một mảng 2 phần tử: phần tử 1 = greeting, phần tử 2 là message
+			
+	- Ví dụ 2: So sánh với call() method
+		let result = greet.call(teacher, 'Em chao co','Ten em la Thang')
+		console.log(result) //print: Em chao co Minh Thu. Ten em la Thang
+		
+		> Giải thích: 
+			- Hàm call truyền đối số đầu là 'teacher' > nghìa là bind object này để nhận nó là this
+			- Hai đối số sau phải truyền bình thường, khác với apply thì là mảng
+		
+		
+
